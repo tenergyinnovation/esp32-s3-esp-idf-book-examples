@@ -1,0 +1,18 @@
+menu "Greenhouse settings"
+
+    config GH_NAME
+        string "ชื่อโรงเรือน"
+        default "Greenhouse-A"
+        help
+            ชื่อที่แสดงใน log และส่งขึ้น cloud
+
+    config GH_FAN_ON_TEMP
+        int "อุณหภูมิเปิดพัดลม (C)"
+        range 20 45
+        default 32
+
+    config GH_ENABLE_ALARM
+        bool "เปิดสัญญาณเตือนอุณหภูมิสูง"
+        default y
+
+endmenu

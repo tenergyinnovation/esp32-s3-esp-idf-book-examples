@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = 'build/flasher_args.json'
+elf = 'build/ex04_mqtt_qos_lwt.elf'

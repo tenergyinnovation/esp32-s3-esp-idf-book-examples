@@ -1,0 +1,21 @@
+# GitHub Actions: build ทุกตัวอย่างด้วย ESP-IDF v6.1 ทุกครั้งที่ push หรือเปิด pull request
+name: build-examples
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: espressif/idf:v6.1          # image ทางการของ Espressif ที่มี toolchain ครบ
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build all examples
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+          fail=0
+          for d in chapter*/ex*/ chapter16/capstone*/; do
+            [ -f "$d/CMakeLists.txt" ] || continue
+            echo "::group::$d"
+            (cd "$d" && idf.py set-target esp32s3 build) || { echo "::error::$d build failed"; fail=1; }
+            echo "::endgroup::"
+          done
+          exit $fail

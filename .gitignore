@@ -1,0 +1,13 @@
+# ESP-IDF build outputs
+build/
+sdkconfig
+sdkconfig.old
+managed_components/
+# Wokwi / editor / OS
+.wokwi/
+.vscode/
+.DS_Store
+*.swp
+
+# ไฟล์ทดสอบชั่วคราวของ Wokwi (ไม่ต้องเก็บใน git)
+_wokwi_test/

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "author": "Uten Boonliam (Tenergy Innovation)",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "id": "esp",
+      "type": "board-esp32-s3-devkitc-1",
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 60,
+      "left": -180,
+      "attrs": {
+        "color": "green"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp:TX",
+      "$serialMonitor:RX",
+      ""
+    ],
+    [
+      "esp:RX",
+      "$serialMonitor:TX",
+      ""
+    ],
+    [
+      "esp:0",
+      "btn1:1.l",
+      "blue",
+      []
+    ],
+    [
+      "btn1:2.l",
+      "esp:GND.1",
+      "black",
+      []
+    ]
+  ]
+}

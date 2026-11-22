@@ -1,0 +1,84 @@
+/*
+ * บทที่ 12 ตัวอย่าง 1: BLE advertising
+ * บอร์ดประกาศตัวชื่อ "Greenhouse-S3" ทุก ~100 ms มือถือเปิดแอป nRF Connect จะเห็นในรายการ
+ */
+
+#include <string.h>
+#include "esp_log.h"
+#include "nvs_flash.h"
+#include "nimble/nimble_port.h"
+#include "nimble/nimble_port_freertos.h"
+#include "host/ble_hs.h"
+#include "services/gap/ble_svc_gap.h"
+#include "services/gatt/ble_svc_gatt.h"
+
+static const char *TAG = "ble";
+static uint8_t s_addr_type;
+static uint16_t s_conn = BLE_HS_CONN_HANDLE_NONE;
+static void advertise(void);
+
+static int gap_event(struct ble_gap_event *ev, void *arg)
+{
+    switch (ev->type) {
+    case BLE_GAP_EVENT_CONNECT:
+        ESP_LOGI(TAG, "มือถือเชื่อมต่อ %s", ev->connect.status == 0 ? "สำเร็จ" : "ไม่สำเร็จ");
+        if (ev->connect.status == 0) s_conn = ev->connect.conn_handle; else advertise();
+        break;
+    case BLE_GAP_EVENT_DISCONNECT:
+        ESP_LOGI(TAG, "ตัดการเชื่อมต่อ (reason %d) กลับไปประกาศตัว", ev->disconnect.reason);
+        s_conn = BLE_HS_CONN_HANDLE_NONE;
+        advertise();
+        break;
+    case BLE_GAP_EVENT_SUBSCRIBE:
+        ESP_LOGI(TAG, "มือถือ %s การแจ้งเตือน (handle %d)", ev->subscribe.cur_notify ? "เปิด" : "ปิด", ev->subscribe.attr_handle);
+        break;
+    default: break;
+    }
+    return 0;
+}
+
+static void advertise(void)
+{
+    struct ble_hs_adv_fields f = { 0 };
+    const char *name = ble_svc_gap_device_name();
+    f.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;   /* ค้นเจอได้ทั่วไป, ไม่รองรับ BT Classic */
+    f.name = (uint8_t *)name; f.name_len = strlen(name); f.name_is_complete = 1;
+    f.tx_pwr_lvl_is_present = 1; f.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
+    ESP_ERROR_CHECK(ble_gap_adv_set_fields(&f));
+    struct ble_gap_adv_params p = { .conn_mode = BLE_GAP_CONN_MODE_UND, .disc_mode = BLE_GAP_DISC_MODE_GEN };
+    int rc = ble_gap_adv_start(s_addr_type, NULL, BLE_HS_FOREVER, &p, gap_event, NULL);
+    if (rc == 0) ESP_LOGI(TAG, "กำลังประกาศตัวชื่อ \"%s\"", name);
+}
+
+static void on_sync(void)
+{
+    ble_hs_id_infer_auto(0, &s_addr_type);
+    uint8_t a[6] = { 0 };
+    ble_hs_id_copy_addr(s_addr_type, a, NULL);
+    ESP_LOGI(TAG, "BLE พร้อม address %02x:%02x:%02x:%02x:%02x:%02x", a[5], a[4], a[3], a[2], a[1], a[0]);
+    advertise();
+}
+
+static void host_task(void *arg) { nimble_port_run(); nimble_port_freertos_deinit(); }
+
+static void ble_start(const char *name, const struct ble_gatt_svc_def *svcs)
+{
+    esp_err_t err = nvs_flash_init();          /* BLE เก็บข้อมูล bonding ใน NVS */
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) { nvs_flash_erase(); err = nvs_flash_init(); }
+    ESP_ERROR_CHECK(err);
+    ESP_ERROR_CHECK(nimble_port_init());
+    ble_hs_cfg.sync_cb = on_sync;
+    ble_svc_gap_init();
+    ble_svc_gatt_init();
+    if (svcs) {
+        ESP_ERROR_CHECK(ble_gatts_count_cfg(svcs));
+        ESP_ERROR_CHECK(ble_gatts_add_svcs(svcs));
+    }
+    ble_svc_gap_device_name_set(name);
+    nimble_port_freertos_init(host_task);
+}
+
+void app_main(void)
+{
+    ble_start("Greenhouse-S3", NULL);
+}

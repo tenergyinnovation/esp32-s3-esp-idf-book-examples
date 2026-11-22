@@ -1,0 +1,16 @@
+# ค่าตั้งของบอร์ด ESP32-S3-DevKitC-1-N16R8 (ใช้ร่วมทุกตัวอย่างในหนังสือ)
+CONFIG_IDF_TARGET="esp32s3"
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+# PSRAM 8 MB แบบ octal บนโมดูล WROOM-1-N16R8
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+# ให้บูตต่อได้ถ้าไม่พบ PSRAM (เช่น ตอนรันบน QEMU)
+CONFIG_SPIRAM_IGNORE_NOTFOUND=y
+# ปิดการทดสอบ PSRAM ตอนบูต: Wokwi รายงาน PSRAM 16 MB แต่จำลองได้ไม่ครบ ทำให้ test fail แล้วรีบูตวน
+# บนบอร์ดจริงเปิดได้ (=y) เพื่อตรวจ PSRAM เสีย แลกกับเวลาบูตที่นานขึ้นหลักร้อยมิลลิวินาที (PSRAM 8 MB)
+CONFIG_SPIRAM_MEMTEST=n
+# พื้นที่โปรแกรม 1.5 MB (ค่าเริ่มต้น 1 MB ไม่พอสำหรับ Wi-Fi + BLE)
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
+
+CONFIG_TINYUSB_CDC_ENABLED=y

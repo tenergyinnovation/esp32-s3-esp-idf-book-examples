@@ -1,0 +1,19 @@
+menu "Example Wi-Fi"
+    config EX_WIFI_SSID
+        string "Wi-Fi SSID"
+        default "Wokwi-GUEST"
+        help
+            ชื่อ Wi-Fi ที่จะเชื่อมต่อ (Wokwi-GUEST ใช้กับ Wokwi simulator)
+    config EX_WIFI_PASSWORD
+        string "Wi-Fi password"
+        default ""
+    config EX_WIFI_MAX_RETRY
+        int "จำนวนครั้งที่ลองเชื่อมต่อก่อนยอมแพ้ (0 = ไม่จำกัด)"
+        default 0
+endmenu
+
+menu "OTA"
+    config EX_OTA_URL
+        string "URL ของไฟล์ firmware (.bin)"
+        default "https://192.168.1.10:8070/firmware.bin"
+endmenu
